@@ -19,7 +19,7 @@ st.set_page_config(page_title="Cidadania Digital", page_icon="🌐", layout="wid
 # ============================================================
 # URL base do app publicado (troque quando publicar no Streamlit Cloud)
 # Enquanto estiver local, use http://localhost:8501
-URL_BASE = "http://localhost:8501"
+URL_BASE = "https://pbl-cidadania-digital-n9rhi8k2wbozexmztzfdmu.streamlit.app"
 
 # Segredo para assinar o certificado (troque por algo seu)
 SEGREDO = "cidadania-digital-odete-mendes-2026"
