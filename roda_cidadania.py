@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 import streamlit as st
 import hashlib
+import json
 import base64
 from io import BytesIO
 from datetime import datetime
 import qrcode
-import json
 
 st.set_page_config(page_title="Cidadania Digital", page_icon="🌐", layout="wide")
 
@@ -80,10 +80,9 @@ def tela_menu():
     st.markdown('<div class="menu-sub">Escolha uma atividade!</div>', unsafe_allow_html=True)
     col1, col2, col3 = st.columns(3)
     with col1:
-        if st.button("🎡\n\nRODA\n\nDescubra uma dica"): st.session_state.tela = "roda"; st.rerun()
+        if st.button("🎡\n\nRODA DA CIDADANIA\n\nGire e descubra uma dica"): st.session_state.tela = "roda"; st.rerun()
     with col2:
-        if st.button("🧠\n\nQUIZ\n\nTeste seu conhecimento"):
-            st.session_state.tela = "quiz"; st.session_state.quiz_idx = 0; st.session_state.quiz_acertos = 0; st.session_state.quiz_respondido = False; st.session_state.quiz_escolha = None; st.rerun()
+        if st.button("🧠\n\nQUIZ RÁPIDO\n\nTeste seu conhecimento"): st.session_state.tela = "quiz"; st.session_state.quiz_idx = 0; st.session_state.quiz_acertos = 0; st.session_state.quiz_respondido = False; st.session_state.quiz_escolha = None; st.rerun()
     with col3:
         if st.button("🏆\n\nCERTIFICADO\n\nGanhe seu diploma"): st.session_state.tela = "certificado"; st.rerun()
 
@@ -92,27 +91,89 @@ def tela_roda():
     with col1:
         if st.button("⬅️ Voltar"): st.session_state.tela = "menu"; st.rerun()
     dicas_js = json.dumps(DICAS, ensure_ascii=False)
-    html = """
-    <!DOCTYPE html><html><head><style>
-    body { background: #0a1929; display:flex; flex-direction:column; align-items:center; color:white; font-family:sans-serif; padding:10px; }
-    .roda { width:300px; height:300px; border-radius:50%; border:5px solid #ffd700; transition:transform 3s cubic-bezier(0.2,0.8,0.2,1); }
-    .btn { background:#ffd700; color:#0a1929; padding:10px 30px; border:none; border-radius:20px; font-weight:bold; cursor:pointer; margin-top:20px; }
-    </style></head><body>
-    <div class="roda" id="roda"></div>
-    <button class="btn" onclick="girar()">GIRAR</button>
-    <script>
-    const dicas = __DICAS__; let girando = false; let angulo = 0;
+    COMPONENTE_RODA = """
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;700;900&display=swap');
+    * { margin:0; padding:0; box-sizing:border-box; font-family:'Poppins',sans-serif; }
+    body { background: linear-gradient(135deg,#0a1929,#1a3a5c,#2d5f8a); min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; padding:15px; overflow:hidden; }
+    .titulo { font-size:2.2rem; font-weight:900; color:#ffd700; text-shadow:0 0 30px rgba(255,215,0,.8); margin-bottom:5px; text-align:center; animation:brilho 2s ease-in-out infinite alternate; }
+    @keyframes brilho { from { text-shadow:0 0 20px rgba(255,215,0,.6); } to { text-shadow:0 0 50px rgba(255,215,0,1); } }
+    .subtitulo { font-size:.9rem; color:rgba(255,255,255,.7); margin-bottom:10px; text-align:center; }
+    .roda-wrapper { position:relative; width:300px; height:300px; margin:5px auto; }
+    .ponteiro { position:absolute; top:-15px; left:50%; transform:translateX(-50%); width:0; height:0; border-left:18px solid transparent; border-right:18px solid transparent; border-top:35px solid #ffd700; filter:drop-shadow(0 0 15px rgba(255,215,0,1)); z-index:10; }
+    .roda { width:100%; height:100%; border-radius:50%; position:relative; overflow:hidden; box-shadow:0 0 60px rgba(255,215,0,.6), inset 0 0 60px rgba(0,0,0,.3); border:5px solid #ffd700; transition:none; }
+    .roda svg { width:100%; height:100%; }
+    .centro { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:65px; height:65px; background:radial-gradient(circle,#ffd700,#ffed4a); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.8rem; box-shadow:0 0 40px rgba(255,215,0,1); z-index:5; border:4px solid #0a1929; }
+    .dica-resultado { background:white; padding:15px 25px; border-radius:15px; margin-top:10px; text-align:center; box-shadow:0 0 60px rgba(255,215,0,.8); border:4px solid #ffd700; max-width:500px; opacity:0; transform:scale(.5); transition:all .5s; }
+    .dica-resultado.mostrar { opacity:1; transform:scale(1); }
+    .dica-emoji { font-size:2.5rem; margin-bottom:5px; }
+    .dica-texto { font-size:1.1rem; color:#1a3a5c; font-weight:700; }
+    .botao { background:linear-gradient(135deg,#ffd700,#ffed4a); color:#0a1929; border:none; border-radius:50px; padding:15px 50px; font-size:1.2rem; font-weight:900; cursor:pointer; box-shadow:0 0 30px rgba(255,215,0,.8); transition:all .3s; margin-top:10px; text-transform:uppercase; letter-spacing:1px; }
+    .botao:hover { transform:scale(1.05); box-shadow:0 0 50px rgba(255,215,0,1); }
+    .botao:disabled { opacity:.5; cursor:not-allowed; }
+    .instrucao { color:rgba(255,255,255,.5); font-size:.8rem; margin-top:10px; text-align:center; }
+</style>
+</head>
+<body>
+<h1 class="titulo">🌐 RODA DA CIDADANIA</h1>
+<p class="subtitulo">Gire e descubra uma dica!</p>
+<div class="roda-wrapper">
+    <div class="ponteiro"></div>
+    <div class="roda" id="roda">
+        <svg viewBox="0 0 200 200">
+            <path d="M100,100 L100,0 A100,100 0 0,1 170.7,29.3 Z" fill="#ff6b6b"/>
+            <path d="M100,100 L170.7,29.3 A100,100 0 0,1 200,100 Z" fill="#4ecdc4"/>
+            <path d="M100,100 L200,100 A100,100 0 0,1 170.7,170.7 Z" fill="#45b7d1"/>
+            <path d="M100,100 L170.7,170.7 A100,100 0 0,1 100,200 Z" fill="#f9ca24"/>
+            <path d="M100,100 L100,200 A100,100 0 0,1 29.3,170.7 Z" fill="#6c5ce7"/>
+            <path d="M100,100 L29.3,170.7 A100,100 0 0,1 0,100 Z" fill="#fd79a8"/>
+            <path d="M100,100 L0,100 A100,100 0 0,1 29.3,29.3 Z" fill="#00b894"/>
+            <path d="M100,100 L29.3,29.3 A100,100 0 0,1 100,0 Z" fill="#e17055"/>
+        </svg>
+    </div>
+    <div class="centro">🎡</div>
+</div>
+<button class="botao" id="botao" onclick="girar()">🎡 GIRAR A RODA</button>
+<div class="dica-resultado" id="resultado">
+    <div class="dica-emoji" id="emoji"></div>
+    <div class="dica-texto" id="texto"></div>
+</div>
+<p class="instrucao">Clique no botão e aguarde o resultado!</p>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<script>
+    const dicas = __DICAS__;
+    let girando = false; let rotacaoAcumulada = 0; let audioCtx = null; let tickTimer = null;
+    function garantirAudio() { try { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); if (audioCtx.state === 'suspended') audioCtx.resume(); return audioCtx; } catch (e) { return null; } }
+    function tocarNota(freq, delay, dur, vol) { const ctx = audioCtx; if (!ctx) return; try { const t = ctx.currentTime + delay; const osc = ctx.createOscillator(); const gain = ctx.createGain(); osc.type = 'sine'; osc.frequency.setValueAtTime(freq, t); gain.gain.setValueAtTime(0.0001, t); gain.gain.exponentialRampToValueAtTime(vol, t + 0.02); gain.gain.exponentialRampToValueAtTime(0.0001, t + dur); osc.connect(gain); gain.connect(ctx.destination); osc.start(t); osc.stop(t + dur + 0.05); } catch (e) {} }
+    function tocarTick() { const ctx = audioCtx; if (!ctx) return; try { const t = ctx.currentTime; const osc = ctx.createOscillator(); const gain = ctx.createGain(); osc.type = 'square'; osc.frequency.setValueAtTime(1400, t); gain.gain.setValueAtTime(0.05, t); gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.04); osc.connect(gain); gain.connect(ctx.destination); osc.start(t); osc.stop(t + 0.05); } catch (e) {} }
+    function tocarFanfarra() { tocarNota(523.25, 0.00, 0.35, 0.30); tocarNota(659.25, 0.15, 0.35, 0.30); tocarNota(783.99, 0.30, 0.35, 0.30); tocarNota(1046.50, 0.45, 0.55, 0.35); }
     function girar() {
-        if (girando) return; girando = true;
-        document.getElementById('roda').style.transform = 'rotate(' + (angulo += 1080) + 'deg)';
-        setTimeout(() => { alert(dicas[Math.floor(Math.random()*dicas.length)].texto); girando = false; }, 3000);
+        if (girando) return; girando = true; garantirAudio();
+        const botao = document.getElementById('botao'); const roda = document.getElementById('roda'); const resultado = document.getElementById('resultado');
+        botao.disabled = true; botao.textContent = '🎡 GIRANDO...'; resultado.classList.remove('mostrar');
+        const indice = Math.floor(Math.random() * dicas.length); const dica = dicas[indice];
+        const TOTAL_FATIAS = 8; const anguloFatia = 360 / TOTAL_FATIAS; const posicaoVisual = indice % TOTAL_FATIAS;
+        const rotacaoAlvo = (posicaoVisual * anguloFatia) + (anguloFatia / 2); rotacaoAcumulada += 360 * 3 + rotacaoAlvo;
+        roda.style.transition = 'none'; void roda.offsetWidth; roda.style.transition = 'transform 3s cubic-bezier(0.2, 0.8, 0.2, 1)'; roda.style.transform = 'rotate(' + rotacaoAcumulada + 'deg)';
+        let tickCount = 0; if (tickTimer) clearInterval(tickTimer);
+        tickTimer = setInterval(function() { tickCount++; if (tickCount > 25) { clearInterval(tickTimer); tickTimer = null; return; } tocarTick(); }, 110);
+        setTimeout(function() {
+            if (tickTimer) { clearInterval(tickTimer); tickTimer = null; }
+            document.getElementById('emoji').textContent = dica.emoji; document.getElementById('texto').textContent = dica.texto; resultado.classList.add('mostrar');
+            try { if (typeof confetti === 'function') { confetti({ particleCount:200, spread:90, origin:{y:0.6}, colors:['#ffd700','#ff6b6b','#4ecdc4','#6c5ce7'] }); } } catch (e) {}
+            tocarFanfarra(); botao.disabled = false; botao.textContent = '🔄 GIRAR NOVAMENTE'; girando = false;
+        }, 3000);
     }
-    </script></body></html>
-    """.replace("__DICAS__", dicas_js).replace("'", "\\'")
-    st.components.v1.html(html, height=500)
+</script>
+</body>
+</html>
+""".replace("__DICAS__", dicas_js)
+    st.iframe(COMPONENTE_RODA, height=700)
 
 def tela_quiz():
-    with st.sidebar: st.write("")
     col1, col2 = st.columns([1, 6])
     with col1:
         if st.button("⬅️ Voltar"): st.session_state.tela = "menu"; st.rerun()
@@ -158,10 +219,44 @@ def tela_certificado():
         with col_q:
             st.markdown(f'<img src="data:image/png;base64,{qr}" style="width:100%;">', unsafe_allow_html=True)
 
-def tela_verificacao(codigo, nome):
-    st.markdown('<div class="menu-titulo">🔍 Certificado</div>', unsafe_allow_html=True)
-    st.markdown(f'<div style="background:#00b894; padding:30px; border-radius:20px; text-align:center; color:white;"><h2>✅ AUTÊNTICO</h2><p>Nome: {nome}</p><p>Código: {codigo}</p></div>', unsafe_allow_html=True)
-    st.markdown('<div style="text-align:center; font-size:1.2rem; margin-top:20px;">📸 Tire um print desta tela!</div>', unsafe_allow_html=True)
+def tela_verificacao(codigo: str, nome: str):
+    try:
+        partes = codigo.split("-")
+        if len(partes) != 3 or partes[0] != "CD": valido = False
+        else:
+            data_str = partes[1]; data = f"{data_str[:4]}-{data_str[4:6]}-{data_str[6:8]}"
+            esperado = gerar_codigo_certificado(nome, data); valido = (esperado["codigo"] == codigo)
+    except Exception: valido = False
+    
+    st.markdown("""
+    <style>
+        #MainMenu {visibility: hidden;} header {visibility: hidden;} footer {visibility: hidden;}
+        .block-container {padding-top: 1rem; padding-bottom: 1rem;}
+    </style>
+    """, unsafe_allow_html=True)
+
+    if valido:
+        st.markdown(f"""
+        <div style="background: linear-gradient(135deg,#fff8dc,#ffed4a); border:8px double #0a1929; border-radius:20px; padding:40px 20px; text-align:center; margin:0 auto; max-width:400px; box-shadow:0 10px 30px rgba(0,0,0,.3);">
+            <div style="font-size:2rem;">✅</div>
+            <div style="font-size:1.1rem; color:#00b894; font-weight:900; letter-spacing:2px; margin-bottom:10px;">CERTIFICADO VÁLIDO</div>
+            <div style="font-size:3rem; margin:10px 0;">🌐</div>
+            <div style="font-size:.9rem; color:#1a3a5c; font-weight:700; letter-spacing:1px;">CERTIFICADO DE CIDADÃO DIGITAL</div>
+            <div style="margin:20px 0 10px; font-size:.9rem; color:#1a3a5c;">Certificamos que</div>
+            <div style="font-size:1.8rem; font-weight:900; color:#0a1929; border-bottom:3px solid #0a1929; display:inline-block; padding:0 20px 5px;">{nome}</div>
+            <div style="margin:20px 10px; font-size:.85rem; color:#1a3a5c; line-height:1.5;">participou das atividades de <b>Cidadania Digital</b> e demonstrou compromisso com o uso consciente, seguro e ético da internet.</div>
+            <div style="font-size:2rem; margin:15px 0;">🏆</div>
+            <div style="font-size:.75rem; color:#1a3a5c; margin-top:20px; line-height:1.4;">
+                EEEF Profª Odete Mendes N Oliveira<br>
+                Prof. Irving V. Santos / Luiz Veloso<br><br>
+                <b>Código:</b> {codigo}<br>
+                <b>Data:</b> {data}
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        st.markdown('<div style="text-align:center; color:white; font-size:1.2rem; margin-top:20px; font-weight:bold;">📸 Deslize para baixo e tire um print!</div>', unsafe_allow_html=True)
+    else:
+        st.markdown('<div style="background:#e17055; padding:40px; border-radius:20px; text-align:center; max-width:600px; margin:30px auto; color:white;"><div style="font-size:4rem;">❌</div><div style="font-size:1.8rem; font-weight:900; margin:15px 0;">CERTIFICADO INVÁLIDO</div></div>', unsafe_allow_html=True)
 
 query_params = st.query_params
 if "verificar" in query_params and "nome" in query_params:
