@@ -297,5 +297,26 @@ def tela_verificacao(codigo: str, nome: str):
     <div style="font-size:2.5rem; margin:10px 0;">🌐</div>
     <div style="font-size:.8rem; color:#1a3a5c; font-weight:700;">CERTIFICADO DE CIDADÃO DIGITAL</div>
     <div style="margin:15px 0; font-size:.8rem; color:#1a3a5c;">Certificamos que</div>
-    <div style="font-size:1.4rem; font-weight:900; color:#0a1929; border-bottom:2px solid #0a1929; display:inline-block; padding:0 15px 5px;">{nome}</div>
+        <div style="font-size:1.5rem; margin:10px 0;">🏆</div>
+    <div style="font-size:.65rem; color:#1a3a5c; margin-top:15px;">EEEF Profª Odete Mendes<br>Prof. Irving V. Santos<br><b>Código:</b> {codigo}<br><b>Data:</b> {data}</div>
+</div>
+""", unsafe_allow_html=True)
+        st.markdown('<div style="text-align:center; color:white; font-size:1.1rem; margin-top:20px; font-weight:700;">📸 Tire um print desta tela para salvar!</div>', unsafe_allow_html=True)
+    else:
+        st.markdown('<div style="background:#e17055; padding:40px; border-radius:20px; text-align:center; max-width:600px; margin:30px auto;"><div style="font-size:4rem;">❌</div><div style="font-size:1.8rem; font-weight:900; margin:15px 0;">CERTIFICADO INVÁLIDO</div></div>', unsafe_allow_html=True)
+
+# ============================================================
+# ROTEADOR
+# ============================================================
+query_params = st.query_params
+if "verificar" in query_params and "nome" in query_params:
+    tela_verificacao(query_params["verificar"], query_params["nome"])
+elif st.session_state.tela == "menu":
+    tela_menu()
+elif st.session_state.tela == "roda":
+    tela_roda()
+elif st.session_state.tela == "quiz":
+    tela_quiz()
+elif st.session_state.tela == "certificado":
+    tela_certificado()
     <div style="margin:15px 0; font-size:.75rem; color:#1a3a5c; line-height:1.4;">participou das atividades de <b>Cidadania Digital</b>.</div>
