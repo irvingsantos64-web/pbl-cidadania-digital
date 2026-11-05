@@ -73,18 +73,165 @@ def gerar_qr_base64(url):
     img = qr.make_image(fill_color="#0a1929", back_color="white")
     buf = BytesIO()
     img.save(buf, format="PNG")
-    return base64.b64encode(buf.getvalue()).decode()
+    return base64.b64encode(buf.getvalue()).decode()def tela_detector():
+    import random
+    col1, col2 = st.columns([1, 6])
+    with col1:
+        if st.button("⬅️ Voltar"): 
+            st.session_state.tela = "menu"
+            st.rerun()
+
+    st.markdown('<div class="menu-titulo">🚨 DETECTOR DE FAKE NEWS</div>', unsafe_allow_html=True)
+    st.markdown('<div class="menu-sub">A notícia é Falsa ou Verdadeira? Clique para descobrir!</div>', unsafe_allow_html=True)
+
+    # Lista de notícias para o jogo
+    noticias = [
+        {"texto": "Beber água com limão cura o câncer em 3 dias.", "fake": True, "explicacao": "Não existe cura mágica para o câncer. Isso é uma fake news perigosa!"},
+        {"texto": "O WhatsApp vai começar a cobrar uma taxa mensal de R$ 10.", "fake": True, "explicacao": "O WhatsApp é gratuito. Essa corrente é antiga e falsa!"},
+        {"texto": "Usar protetor solar ajuda a prevenir o envelhecimento da pele.", "fake": False, "explicacao": "Verdade! O protetor solar protege contra raios UV, que envelhecem a pele."},
+        {"texto": "Um novo vírus está sendo espalhado por meio de áudios no WhatsApp.", "fake": True, "explicacao": "Áudios não transmitem vírus. Isso é boato!"},
+        {"texto": "A Terra é plana e os cientistas escondem isso.", "fake": True, "explicacao": "A Terra é redonda (geóide). Fotos de satélites e viagens espaciais comprovam."}
+    ]
+
+    if "noticia_atual" not in st.session_state:
+        st.session_state.noticia_atual = random.choice(noticias)
+        st.session_state.revelado = False
+
+    noticia = st.session_state.noticia_atual
+
+    # Caixa da notícia
+    st.markdown(f"""
+    <div style="background:white; padding:40px; border-radius:20px; text-align:center; border:5px solid #2d5f8a; margin:20px auto; max-width:700px; box-shadow:0 10px 20px rgba(0,0,0,0.3);">
+        <h2 style="color:#1a3a5c; font-size:1.5rem; margin-bottom:20px;">📱 MENSAGEM RECEBIDA NO WHATSAPP:</h2>
+        <p style="color:#333; font-size:1.3rem; font-style:italic;">"{noticia['texto']}"</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    if not st.session_state.revelado:
+        colA, colB = st.columns(2)
+        with colA:
+            if st.button("✅ É VERDADE", use_container_width=True):
+                st.session_state.revelado = True
+                st.session_state.resposta_usuario = False
+                st.rerun()
+        with colB:
+            if st.button("❌ É FAKE NEWS", use_container_width=True):
+                st.session_state.revelado = True
+                st.session_state.resposta_usuario = True
+                st.rerun()
+    else:
+        acertou = (st.session_state.resposta_usuario == noticia['fake'])
+        
+        if acertou:
+            st.balloons()
+            st.markdown('<div style="background:#00b894; color:white; padding:20px; border-radius:15px; text-align:center; font-size:1.5rem; font-weight:900; margin:20px 0;">🎉 VOCÊ ACERTOU!</div>', unsafe_allow_html=True)
+        else:
+            st.markdown('<div style="background:#e17055; color:white; padding:20px; border-radius:15px; text-align:center; font-size:1.5rem; font-weight:900; margin:20px 0;">❌ VOCÊ ERROU!</div>', unsafe_allow_html=True)
+
+        cor_fundo = "#e74c3c" if noticia['fake'] else "#2ecc71"
+        texto_veredito = "É FAKE NEWS!" if noticia['fake'] else "É VERDADE!"
+        
+        st.markdown(f"""
+        <div style="background:{cor_fundo}; color:white; padding:20px; border-radius:15px; text-align:center; margin-bottom:20px;">
+            <h2 style="margin:0; font-size:2rem;">{texto_veredito}</h2>
+            <p style="margin:10px 0 0 0; font-size:1.1rem;">{noticia['explicacao']}</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+        if st.button("🔄 Jogar Novamente"):
+            del st.session_state.noticia_atual
+            del st.session_state.revelado
+            st.rerun()
+
+def tela_termometro():
+    col1, col2 = st.columns([1, 6])
+    with col1:
+        if st.button("⬅️ Voltar"): 
+            st.session_state.tela = "menu"
+            st.rerun()
+
+    st.markdown('<div class="menu-titulo">🌡️ TERMÔMETRO DO CYBERBULLYING</div>', unsafe_allow_html=True)
+    st.markdown('<div class="menu-sub">Como você se sente ao ver alguém sofrendo bullying online?</div>', unsafe_allow_html=True)
+
+    st.markdown("""
+    <div style="background:white; padding:30px; border-radius:20px; text-align:center; border:5px solid #2d5f8a; margin:20px auto; max-width:700px; box-shadow:0 10px 20px rgba(0,0,0,0.3);">
+        <h2 style="color:#1a3a5c; font-size:1.5rem; margin-bottom:20px;">📱 SITUAÇÃO REAL:</h2>
+        <p style="color:#333; font-size:1.3rem; font-style:italic;">"Um colega seu recebeu mensagens ofensivas e fotos dele foram espalhadas no grupo da sala."</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    if "sentimento" not in st.session_state:
+        st.session_state.sentimento = None
+
+    if st.session_state.sentimento is None:
+        st.markdown('<div style="text-align:center; font-size:1.2rem; margin-bottom:20px; color:white;">Escolha um sentimento:</div>', unsafe_allow_html=True)
+        
+        colA, colB, colC = st.columns(3)
+        with colA:
+            if st.button("😢 Fico Triste", use_container_width=True):
+                st.session_state.sentimento = "triste"
+                st.rerun()
+        with colB:
+            if st.button("😡 Fico com Raiva", use_container_width=True):
+                st.session_state.sentimento = "raiva"
+                st.rerun()
+        with colC:
+            if st.button("🤝 Quero Ajudar", use_container_width=True):
+                st.session_state.sentimento = "ajudar"
+                st.rerun()
+    else:
+        if st.session_state.sentimento == "triste":
+            st.markdown("""
+            <div style="background:#34495e; color:white; padding:30px; border-radius:20px; text-align:center; margin:20px 0;">
+                <h2 style="font-size:2rem; margin-bottom:10px;">😢 A empatia é o primeiro passo.</h2>
+                <div style="font-size:3rem; margin:20px 0;">📉</div>
+                <p style="font-size:1.2rem;">Ficar triste mostra que você tem empatia. Mas a tristeza sozinha não resolve o problema. O próximo passo é <b>apoiar o colega</b> e <b>avisar um adulto</b>.</p>
+            </div>
+            """, unsafe_allow_html=True)
+        elif st.session_state.sentimento == "raiva":
+            st.markdown("""
+            <div style="background:#e74c3c; color:white; padding:30px; border-radius:20px; text-align:center; margin:20px 0;">
+                <h2 style="font-size:2rem; margin-bottom:10px;">😡 A raiva pode ser uma força!</h2>
+                <div style="font-size:3rem; margin:20px 0;">🔥</div>
+                <p style="font-size:1.2rem;">A raiva é uma reação natural à injustiça. Mas cuidado para não responder com mais agressão. Transforme essa raiva em ação: <b>denuncie o agressor</b>.</p>
+            </div>
+            """, unsafe_allow_html=True)
+        elif st.session_state.sentimento == "ajudar":
+            st.balloons()
+            st.markdown("""
+            <div style="background:#2ecc71; color:white; padding:30px; border-radius:20px; text-align:center; margin:20px 0; box-shadow:0 0 30px rgba(46, 204, 113, 0.8);">
+                <h2 style="font-size:2rem; margin-bottom:10px;">🤝 VOCÊ É UM CIDADÃO DIGITAL!</h2>
+                <div style="font-size:3rem; margin:20px 0;">🏆</div>
+                <p style="font-size:1.2rem;">Essa é a atitude correta! Apoie a vítima, não compartilhe as ofensas e conte a um adulto de confiança. Juntos, podemos parar o cyberbullying.</p>
+            </div>
+            """, unsafe_allow_html=True)
+
+        if st.button("🔄 Voltar ao início"):
+            st.session_state.sentimento = None
+            st.rerun()
 
 def tela_menu():
     st.markdown('<div class="menu-titulo">🌐 CIDADANIA DIGITAL</div>', unsafe_allow_html=True)
     st.markdown('<div class="menu-sub">Escolha uma atividade!</div>', unsafe_allow_html=True)
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3, col4 = st.columns(4)
     with col1:
         if st.button("🎡\n\nRODA DA CIDADANIA\n\nGire e descubra uma dica"): st.session_state.tela = "roda"; st.rerun()
     with col2:
         if st.button("🧠\n\nQUIZ RÁPIDO\n\nTeste seu conhecimento"): st.session_state.tela = "quiz"; st.session_state.quiz_idx = 0; st.session_state.quiz_acertos = 0; st.session_state.quiz_respondido = False; st.session_state.quiz_escolha = None; st.rerun()
     with col3:
         if st.button("🏆\n\nCERTIFICADO\n\nGanhe seu diploma"): st.session_state.tela = "certificado"; st.rerun()
+    
+    st.markdown("<br>", unsafe_allow_html=True)
+    
+        col4, col5, col6 = st.columns(3)
+        with col4:
+            if st.button("🚨\n\nDETECTOR DE FAKE NEWS\n\nDescubra a verdade"): 
+                st.session_state.tela = "detector"; st.rerun()
+        with col5:
+            if st.button("🌡️\n\nTERMÔMETRO CYBER\n\nSinta a empatia"): 
+                st.session_state.tela = "termometro"; st.session_state.sentimento = None; st.rerun()
+        with col6:
+            st.empty() # Deixa o último espaço vazio para alinhar bonito
 
 def tela_roda():
     col1, col2 = st.columns([1, 6])
@@ -261,7 +408,15 @@ def tela_verificacao(codigo: str, nome: str):
 query_params = st.query_params
 if "verificar" in query_params and "nome" in query_params:
     tela_verificacao(query_params["verificar"], query_params["nome"])
-elif st.session_state.tela == "menu": tela_menu()
-elif st.session_state.tela == "roda": tela_roda()
-elif st.session_state.tela == "quiz": tela_quiz()
-elif st.session_state.tela == "certificado": tela_certificado()
+elif st.session_state.tela == "detector": 
+    tela_detector()
+elif st.session_state.tela == "termometro": 
+    tela_termometro()
+elif st.session_state.tela == "menu": 
+    tela_menu()
+elif st.session_state.tela == "roda": 
+    tela_roda()
+elif st.session_state.tela == "quiz": 
+    tela_quiz()
+elif st.session_state.tela == "certificado": 
+    tela_certificado()
