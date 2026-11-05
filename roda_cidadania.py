@@ -86,7 +86,6 @@ def tela_detector():
     st.markdown('<div class="menu-titulo">🚨 DETECTOR DE FAKE NEWS</div>', unsafe_allow_html=True)
     st.markdown('<div class="menu-sub">A notícia é Falsa ou Verdadeira? Clique para descobrir!</div>', unsafe_allow_html=True)
 
-    # Lista de notícias para o jogo
     noticias = [
         {"texto": "Beber água com limão cura o câncer em 3 dias.", "fake": True, "explicacao": "Não existe cura mágica para o câncer. Isso é uma fake news perigosa!"},
         {"texto": "O WhatsApp vai começar a cobrar uma taxa mensal de R$ 10.", "fake": True, "explicacao": "O WhatsApp é gratuito. Essa corrente é antiga e falsa!"},
@@ -101,7 +100,6 @@ def tela_detector():
 
     noticia = st.session_state.noticia_atual
 
-    # Caixa da notícia
     st.markdown(f"""
     <div style="background:white; padding:40px; border-radius:20px; text-align:center; border:5px solid #2d5f8a; margin:20px auto; max-width:700px; box-shadow:0 10px 20px rgba(0,0,0,0.3);">
         <h2 style="color:#1a3a5c; font-size:1.5rem; margin-bottom:20px;">📱 MENSAGEM RECEBIDA NO WHATSAPP:</h2>
@@ -215,7 +213,8 @@ def tela_termometro():
 def tela_menu():
     st.markdown('<div class="menu-titulo">🌐 CIDADANIA DIGITAL</div>', unsafe_allow_html=True)
     st.markdown('<div class="menu-sub">Escolha uma atividade!</div>', unsafe_allow_html=True)
-    col1, col2, col3, col4 = st.columns(4)
+    
+    col1, col2, col3 = st.columns(3)
     with col1:
         if st.button("🎡\n\nRODA DA CIDADANIA\n\nGire e descubra uma dica"): st.session_state.tela = "roda"; st.rerun()
     with col2:
@@ -223,17 +222,17 @@ def tela_menu():
     with col3:
         if st.button("🏆\n\nCERTIFICADO\n\nGanhe seu diploma"): st.session_state.tela = "certificado"; st.rerun()
     
-        st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown("<br>", unsafe_allow_html=True)
     
-        col4, col5, col6 = st.columns(3)
-        with col4:
-            if st.button("🚨\n\nDETECTOR DE FAKE NEWS\n\nDescubra a verdade"): 
-                st.session_state.tela = "detector"; st.rerun()
-        with col5:
-            if st.button("🌡️\n\nTERMÔMETRO CYBER\n\nSinta a empatia"): 
-                st.session_state.tela = "termometro"; st.session_state.sentimento = None; st.rerun()
-        with col6:
-            st.empty() # Deixa o último espaço vazio para alinhar bonito
+    col4, col5, col6 = st.columns(3)
+    with col4:
+        if st.button("🚨\n\nDETECTOR DE FAKE NEWS\n\nDescubra a verdade"): 
+            st.session_state.tela = "detector"; st.rerun()
+    with col5:
+        if st.button("🌡️\n\nTERMÔMETRO CYBER\n\nSinta a empatia"): 
+            st.session_state.tela = "termometro"; st.session_state.sentimento = None; st.rerun()
+    with col6:
+        st.empty()
 
 def tela_roda():
     col1, col2 = st.columns([1, 6])
