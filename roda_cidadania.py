@@ -73,7 +73,9 @@ def gerar_qr_base64(url):
     img = qr.make_image(fill_color="#0a1929", back_color="white")
     buf = BytesIO()
     img.save(buf, format="PNG")
-    return base64.b64encode(buf.getvalue()).decode()def tela_detector():
+    return base64.b64encode(buf.getvalue()).decode()
+
+def tela_detector():
     import random
     col1, col2 = st.columns([1, 6])
     with col1:
@@ -221,7 +223,7 @@ def tela_menu():
     with col3:
         if st.button("🏆\n\nCERTIFICADO\n\nGanhe seu diploma"): st.session_state.tela = "certificado"; st.rerun()
     
-    st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown("<br>", unsafe_allow_html=True)
     
         col4, col5, col6 = st.columns(3)
         with col4:
